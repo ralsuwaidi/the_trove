@@ -37,7 +37,7 @@ def get_link_list(url):
 
 get_link_list(initial_link)
 
-
+# download file from URL
 def get_file(url):
     link = url
     url = url.replace("https://thetrove.is/Books/", "").replace("%20", " ")
@@ -53,13 +53,15 @@ def get_file(url):
     except:
         pass
     omar_file = string_split[-1]
-    r = requests.get(link, allow_redirects=True)
 
-    open(download_dir+omar_file, 'wb').write(r.content)
+    # check if file exists
+    if not os.path.exists(download_dir+omar_file):
+        # download from link
+        r = requests.get(link, allow_redirects=True)
+        open(download_dir+omar_file, 'wb').write(r.content)
 
 
 bar = Bar('Downloading', max=len(downloads))
-
 for item in downloads:
     # print("downloading: "+item)
     bar.next()
