@@ -6,14 +6,13 @@ import os
 import re
 import sys
 from progress.bar import Bar
-
-initial_link = input('What initial link you want to start with? ')
-
-urls = []
-downloads = []
+from multiprocessing import Pool, cpu_count
 
 
 def get_link_list(url):
+    url_list = []
+    urls = []
+
     website = url
     page = requests.get(website)
     soup = BeautifulSoup(page.content, 'html.parser')
@@ -27,15 +26,17 @@ def get_link_list(url):
         if(start and href not in urls):
             urls.append(site)
             if(not site.endswith("/")):
-                downloads.append(site)
+                url_list.append(site)
                 print("saving link: "+site)
             if(site.endswith("/")):
                 get_link_list(site)
         if(href == '../'):
             start = True
 
+    return url_list
 
-get_link_list(initial_link)
+
+
 
 # download file from URL
 def get_file(url):
@@ -61,11 +62,19 @@ def get_file(url):
         open(download_dir+omar_file, 'wb').write(r.content)
 
 
-bar = Bar('Downloading', max=len(downloads))
-for item in downloads:
-    # print("downloading: "+item)
-    bar.next()
-    get_file(item)
-bar.finish()
+if __name__ == "__main__":
+    print("There are {} CPUs on this machine ".format(cpu_count()))
+    initial_link = input('What initial link you want to start with? ')
 
-input("DONE :D\n")
+    downloads = get_link_list(initial_link)
+
+
+    pool = Pool()
+    
+    bar = Bar('Downloading', max=len(downloads))
+    for i in pool.imap(get_file, downloads):
+        # print("downloading: "+item)
+        bar.next()
+    bar.finish()
+
+    input("DONE :D\n")
